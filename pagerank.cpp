@@ -1,0 +1,222 @@
+// pagerank.cpp : Defines the entry point for the console application.
+//
+
+#include <iostream>
+#include <list>
+#include <fstream>
+#include <vector>
+
+using namespace std;
+
+class Graph
+{
+	int V;
+	//list<int> *aList;
+	vector<int> *aList;
+
+public:
+	Graph() {}
+
+	Graph(int v)
+	{
+		V = v;
+		//aList = new list<int>[v];
+		aList = new vector<int>[v];
+	}
+
+	vector<int>* getList() {
+		return aList;
+	}
+
+	void addEdge(int src, int dest)
+	{
+		aList[src].push_back(dest);
+	}
+
+	void printGraph()
+	{
+		for (int i = 0; i < V ; i++)
+		{
+			cout << "| " << i << " |-> ";
+			for (int j = 0; j < aList[i].size(); j++)
+			{
+				cout << aList[i].at(j) << "->";
+			}
+
+			cout << endl;
+			/*list<int>::iterator it;
+			for (it = aList[i].begin(); it != aList[i].end(); ++it)
+			{
+				cout << *it << " -> ";
+			}
+			cout << "\n";*/
+		}
+	}
+};
+
+double d = 0.85, error, initialValue;
+int t, N, iter, iterations, iVal;
+double P[100];
+double oldP[100];
+double tmp[100];
+vector<int> outDegrees;
+
+int convergence(){
+	int i, j, k = 0, flag = 1;
+	double err;
+
+	for (int i = 0; i < N; i++)
+	{
+		if (fabs(P[i] - oldP[i]) > error) {
+			return 0;
+		}
+	}
+
+	// if fabs(p[i] - oldP[i]) < error for ALL i - STOP
+	//else KEEP GOING
+
+	return flag;
+}
+
+void printVals() {
+	for (int i = 0; i < N; i++)
+	{
+		printf("P[%d]: %.6f   ", i, P[i]);
+	}	
+	printf("\n");
+}
+
+void init(Graph g) {
+
+	for (int i = 0; i < N; i++) {
+		P[i] = initialValue;
+	}
+
+	vector<int> *tp;
+	tp = g.getList();
+	int outDegree = 0;
+	for (int i = 0; i < N; i++)
+	{
+		list<int>::iterator it;
+		for (int j = 0; j < tp[i].size(); j++)
+		{
+			outDegree++;
+		}
+		outDegrees.push_back(outDegree);
+		outDegree = 0;
+	}
+
+}
+
+double C(Graph g, int k) {
+	double sum = 0;
+	vector<int> *tp = g.getList();
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < tp[i].size(); j++)
+		{
+			if (tp[i].at(j) == k) {
+				sum += P[i] / outDegrees[i];
+			}
+		}
+	}
+
+	return sum;
+}
+
+void pagerank(Graph g) {
+	cout << "Base\t:   " << iter << ":   "; 
+	printVals();
+	iter++;
+
+	vector<double> tmps;
+	double val, points;
+
+	//for (int i = 0; i < 10; i++) //while fabs(p[i] - oldP[i]) < error for ALL i - STOP
+	while (!convergence())
+	{
+
+		for (int i = 0; i < N; i++)
+		{
+			points = C(g, i);
+			val = ((1 - d) / N) + d * (points);
+			tmp[i] = val;
+			val = 0;
+		}
+
+		for (int i = 0; i < N; i++)
+		{
+			oldP[i] = P[i];
+			P[i] = tmp[i];
+		}
+
+		cout << "iter\t:   " << iter << ":   ";
+		printVals();
+		iter++;
+	}	
+}
+
+int main(int argc, char* argv[])
+{
+	iterations = atoi(argv[1]);
+	if (iterations == 0) {
+		error = .001;
+	}
+	else if (iterations < 0) {
+		error = -iterations;
+		error = pow(10, error);
+	}
+	else {
+		iterations = iterations;
+		//error = .001;
+	}
+
+	initialValue = atof(argv[2]);
+	char* fn = argv[3];
+
+	cout << "cmdline: " << iterations << "\t" << initialValue << "\t" << fn << endl;
+	cout << "error: ";
+	printf("%.6f", error);
+	cout << endl;
+
+	fstream ifs;
+	int numVert, numEdge;
+	int src, dest;
+
+	ifs.open(fn, ios_base::in);
+	ifs >> numVert >> numEdge;
+	N = numVert;
+
+	if (initialValue == -2) {
+		initialValue = (double)1 / (double)sqrt(N);
+	}
+	else if (initialValue == -1) {
+		initialValue = (double)1 / (double)N;
+	}
+	else if (initialValue == 0) {
+		initialValue = 0;
+	}
+	else if (initialValue == 1) {
+		initialValue = 1;
+	}
+	
+	if (N > 10) {
+		iter = 0;
+		initialValue = -1;
+	}
+	Graph g(numVert);
+
+	while (ifs >> src >> dest)
+	{
+		g.addEdge(src, dest);
+	}
+
+	ifs.close();
+
+	init(g);
+	pagerank(g);
+
+	return 0;
+}
+
