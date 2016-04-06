@@ -14,7 +14,6 @@ using namespace std;
 class Graph
 {
 	int V;
-	//list<int> *aList;
 	vector<int> *aList;
 
 public:
@@ -23,7 +22,6 @@ public:
 	Graph(int v)
 	{
 		V = v;
-		//aList = new list<int>[v];
 		aList = new vector<int>[v];
 	}
 
@@ -47,12 +45,6 @@ public:
 			}
 
 			cout << endl;
-			/*list<int>::iterator it;
-			for (it = aList[i].begin(); it != aList[i].end(); ++it)
-			{
-				cout << *it << " -> ";
-			}
-			cout << "\n";*/
 		}
 	}
 };
@@ -82,9 +74,6 @@ int convergence(){
 			}
 		}
 	}
-
-	// if fabs(p[i] - oldP[i]) < error for ALL i - STOP
-	//else KEEP GOING
 
 	return flag;
 }
@@ -155,7 +144,6 @@ void pagerank(Graph g) {
 	vector<double> tmps;
 	double val, points;
 
-	//for (int i = 0; i < 10; i++) //while fabs(p[i] - oldP[i]) < error for ALL i - STOP
 	while (!convergence())
 	{
 
@@ -193,7 +181,7 @@ void pagerank(Graph g) {
 
 int main(int argc, char* argv[])
 {
-	method = iterBased; //method = 0: iterations based :: method = 1 : error based
+	method = iterBased;
 	iterations = atoi(argv[1]);
 	if (iterations == 0) {
 		method = errorBased;
@@ -209,11 +197,6 @@ int main(int argc, char* argv[])
 
 	initialValue = atof(argv[2]);
 	char* fn = argv[3];
-
-	cout << "cmdline: " << iterations << "\t" << initialValue << "\t" << fn << endl;
-	cout << "error: ";
-	printf("%.6f", error);
-	cout << endl;
 
 	fstream ifs;
 	int numVert, numEdge;
