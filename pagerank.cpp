@@ -6,6 +6,9 @@
 #include <fstream>
 #include <vector>
 
+#define iterBased 0
+#define errorBased 1
+
 using namespace std;
 
 class Graph
@@ -55,7 +58,7 @@ public:
 };
 
 double d = 0.85, error, initialValue;
-int t, N, iter, iterations, iVal;
+int t, N, iter, iterations, iVal, method;
 double P[100];
 double oldP[100];
 double tmp[100];
@@ -65,10 +68,18 @@ int convergence(){
 	int i, j, k = 0, flag = 1;
 	double err;
 
-	for (int i = 0; i < N; i++)
+	if (method == iterBased && iterations > 0)
 	{
-		if (fabs(P[i] - oldP[i]) > error) {
-			return 0;
+		iterations--;
+		flag = 0;
+	}
+	else if (method == errorBased)
+	{
+		for (int i = 0; i < N; i++)
+		{
+			if (fabs(P[i] - oldP[i]) > error) {
+				return 0;
+			}
 		}
 	}
 
@@ -76,6 +87,13 @@ int convergence(){
 	//else KEEP GOING
 
 	return flag;
+}
+
+void printOneVal() {
+	for (int i = 0; i < N; i++)
+	{
+		printf("P[%d]: %.6f\n", i, P[i]);
+	}
 }
 
 void printVals() {
@@ -126,8 +144,12 @@ double C(Graph g, int k) {
 }
 
 void pagerank(Graph g) {
-	cout << "Base\t:   " << iter << ":   "; 
-	printVals();
+	if (N<10)
+	{
+		cout << "Base\t:   " << iter << ":   ";
+		printVals();
+	}
+	
 	iter++;
 
 	vector<double> tmps;
@@ -151,25 +173,38 @@ void pagerank(Graph g) {
 			P[i] = tmp[i];
 		}
 
-		cout << "iter\t:   " << iter << ":   ";
-		printVals();
+		if (N<10)
+		{
+			cout << "iter\t:   " << iter << ":   ";
+			printVals();
+		}
+
 		iter++;
 	}	
+		
+	if (N>10)	
+	{
+		cout << "iter\t:   " << iter << endl;
+		printOneVal();
+	}
+	
+
 }
 
 int main(int argc, char* argv[])
 {
+	method = iterBased; //method = 0: iterations based :: method = 1 : error based
 	iterations = atoi(argv[1]);
 	if (iterations == 0) {
-		error = .001;
+		method = errorBased;
+		error = pow(10, -4);
 	}
 	else if (iterations < 0) {
-		error = -iterations;
-		error = pow(10, error);
+		method = errorBased;
+		error = pow(10, -iterations);
 	}
 	else {
 		iterations = iterations;
-		//error = .001;
 	}
 
 	initialValue = atof(argv[2]);
@@ -204,6 +239,8 @@ int main(int argc, char* argv[])
 	if (N > 10) {
 		iter = 0;
 		initialValue = -1;
+		error = pow(10, -iterations);
+		method = errorBased;
 	}
 	Graph g(numVert);
 
